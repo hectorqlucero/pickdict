@@ -15,7 +15,7 @@ PickDict is available on [Clojars](https://clojars.org/org.clojars.hector/pickdi
 For local development or if you need the latest changes:
 
 ```bash
-git clone https://github.com/hector/pickdict.git
+git clone https://github.com/hectorqlucero/pickdict.git
 cd pickdict
 lein install
 ```
