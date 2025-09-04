@@ -18,6 +18,21 @@ cd pickdict
 lein install
 ```
 
+### Manual Deployment (Alternative)
+
+If GitHub Actions fails, deploy manually:
+
+```bash
+# 1. Get your Clojars deploy token from: https://clojars.org/tokens
+
+# 2. Set credentials
+export CLOJARS_USERNAME=your_clojars_username
+export CLOJARS_PASSWORD=your_deploy_token
+
+# 3. Run deployment
+./deploy.sh
+```
+
 ### Publishing New Versions
 
 This project uses GitHub Actions to automatically publish to Clojars when a new version is tagged.

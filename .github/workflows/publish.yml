@@ -1,9 +1,13 @@
 name: Publish to Clojars
 
-on:
-  push:
-    tags:
-      - 'v*.*.*'
+# Temporarily disabled - use manual deployment
+# on:
+#   push:
+#     tags:
+#       - 'v*.*.*'
+
+# Manual trigger only
+on: workflow_dispatch
 
 jobs:
   test:
