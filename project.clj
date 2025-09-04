@@ -10,8 +10,8 @@
   :source-paths ["src"]
   :test-paths ["test"]
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
-                                    :username :env/clojars_username
-                                    :password :env/clojars_password
+                                    :username :env/CLOJARS_USERNAME
+                                    :password :env/CLOJARS_PASSWORD
                                     :sign-releases false}]]
   :scm {:name "git"
         :url "https://github.com/hectorqlucero/pickdict"}
