@@ -46,15 +46,11 @@ jobs:
 
     - name: Deploy to Clojars
       env:
-        CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
-        CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
         clojars_username: ${{ secrets.CLOJARS_USERNAME }}
         clojars_password: ${{ secrets.CLOJARS_PASSWORD }}
       run: |
         echo "Environment variables set:"
-        echo "CLOJARS_USERNAME: $CLOJARS_USERNAME"
         echo "clojars_username: $clojars_username"
-        echo "CLOJARS_PASSWORD length: ${#CLOJARS_PASSWORD}"
         echo "clojars_password length: ${#clojars_password}"
         echo ""
         echo "Starting deployment..."
