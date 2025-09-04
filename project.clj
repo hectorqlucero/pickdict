@@ -1,4 +1,4 @@
-(defproject org.clojars.hector/pickdict "0.1.0"
+(defproject hector/pickdict "0.1.0"
   :description "Pick/D3-style multivalue database layer for SQL databases"
   :url "https://github.com/hectorqlucero/pickdict"
   :license {:name "EPL-2.0"
@@ -9,6 +9,9 @@
                  [cheshire "6.1.0"]]
   :source-paths ["src"]
   :test-paths ["test"]
+  :repositories [["clojars" {:url "https://clojars.org/repo"
+                             :username :env/clojars_username
+                             :password :env/clojars_password}]]
   :scm {:name "git"
         :url "https://github.com/hectorqlucero/pickdict"}
   :pom-addition [:developers [:developer

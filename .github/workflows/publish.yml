@@ -42,6 +42,8 @@ jobs:
       env:
         CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
         CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
+        clojars_username: ${{ secrets.CLOJARS_USERNAME }}
+        clojars_password: ${{ secrets.CLOJARS_PASSWORD }}
       run: lein deploy clojars
 
     - name: Create GitHub Release
@@ -55,7 +57,7 @@ jobs:
 
           ## Installation
           ```clojure
-          [org.clojars.hector/pickdict "${{ github.ref_name }}"]
+          [hector/pickdict "${{ github.ref_name }}"]
           ```
         draft: false
         prerelease: false

@@ -1,13 +1,11 @@
 # PickDict
 
-[![Clojars Project](https://img.shiel## Installation
+[![Clojars Project](https://img.shiel### From Clojars (Recommended)
 
-### From Clojars (Recommended)
-
-PickDict is available on [Clojars](https://clojars.org/org.clojars.hector/pickdict). Add this to your `project.clj`:
+PickDict is available on [Clojars](https://clojars.org/hector/pickdict). Add this to your `project.clj`:
 
 ```clojure
-[org.clojars.hector/pickdict "0.1.0"]
+[hector/pickdict "0.1.0"]
 ```
 
 ### Manual Installation
@@ -47,7 +45,7 @@ The script will:
 
 1. **Update version** in `project.clj`:
    ```clojure
-   (defproject org.clojars.hector/pickdict "0.1.1"  ;; Increment version
+   (defproject hector/pickdict "0.1.1"  ;; Increment version
    ```
 
 2. **Update CHANGELOG.md** with the new changes
