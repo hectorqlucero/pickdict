@@ -1,40 +1,90 @@
 #!/bin/bash
 
-# Manual deployment script for PickDict
-# Run this locally if GitHub Actions fails
+# Manual deployment script for PickDict to Clojars
+# Run this locally: ./deploy.sh
 
 set -e
 
-echo "🚀 Manual PickDict Deployment to Clojars"
+echo "🚀 PickDict Manual Deployment to Clojars"
 echo "========================================"
 
-# Check if credentials are set
+# Check if credentials are provided
 if [ -z "$CLOJARS_USERNAME" ]; then
-    echo "❌ CLOJARS_USERNAME environment variable not set"
-    echo "Set it with: export CLOJARS_USERNAME=your_username"
+    echo "❌ CLOJARS_USERNAME not set"
+    echo ""
+    echo "Set your credentials:"
+    echo "export CLOJARS_USERNAME=your_clojars_username"
+    echo "export CLOJARS_PASSWORD=your_deploy_token"
+    echo ""
+    echo "Get your deploy token from: https://clojars.org/tokens"
     exit 1
 fi
 
 if [ -z "$CLOJARS_PASSWORD" ]; then
-    echo "❌ CLOJARS_PASSWORD environment variable not set"
-    echo "Set it with: export CLOJARS_PASSWORD=your_token"
+    echo "❌ CLOJARS_PASSWORD not set"
+    echo ""
+    echo "Set your credentials:"
+    echo "export CLOJARS_USERNAME=your_clojars_username"
+    echo "export CLOJARS_PASSWORD=your_deploy_token"
+    echo ""
+    echo "Get your deploy token from: https://clojars.org/tokens"
     exit 1
 fi
 
-echo "✅ Credentials found"
+echo "✅ Credentials configured"
 echo "Username: $CLOJARS_USERNAME"
-echo "Token length: ${#CLOJARS_PASSWORD}"
+echo "Token: [HIDDEN]"
 
-# Run tests first
+# Verify we're in the right directory
+if [ ! -f "project.clj" ]; then
+    echo "❌ project.clj not found. Run this from the pickdict directory."
+    exit 1
+fi
+
+# Run tests
 echo ""
 echo "🧪 Running tests..."
-lein test
+if ! lein test; then
+    echo "❌ Tests failed. Fix issues before deploying."
+    exit 1
+fi
+echo "✅ All tests passed"
+
+# Check Leiningen version
+echo ""
+echo "🔧 Leiningen version:"
+lein version
 
 # Deploy
 echo ""
 echo "📦 Deploying to Clojars..."
-lein deploy clojars
-
-echo ""
-echo "🎉 Deployment successful!"
-echo "Check: https://clojars.org/hector/pickdict"
+echo "This may take a minute or two..."
+if lein deploy clojars; then
+    echo ""
+    echo "🎉 SUCCESS! PickDict deployed to Clojars"
+    echo ""
+    echo "📋 Library Details:"
+    echo "   Group ID: hector"
+    echo "   Artifact ID: pickdict"
+    echo "   Version: 0.1.0"
+    echo ""
+    echo "📦 Installation for users:"
+    echo "   [hector/pickdict \"0.1.0\"]"
+    echo ""
+    echo "🔗 Clojars URL: https://clojars.org/hector/pickdict"
+    echo "📖 GitHub URL: https://github.com/hectorqlucero/pickdict"
+else
+    echo ""
+    echo "❌ Deployment failed!"
+    echo ""
+    echo "🔍 Possible issues:"
+    echo "   - Invalid credentials"
+    echo "   - Network connectivity"
+    echo "   - Clojars service issues"
+    echo ""
+    echo "🔧 Troubleshooting:"
+    echo "   1. Verify credentials: https://clojars.org/tokens"
+    echo "   2. Check network: ping clojars.org"
+    echo "   3. Try again later if Clojars is down"
+    exit 1
+fi
