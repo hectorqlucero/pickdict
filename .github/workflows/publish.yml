@@ -1,0 +1,63 @@
+name: Publish to Clojars
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Install Leiningen
+      run: |
+        wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
+        chmod +x lein
+        sudo mv lein /usr/local/bin/
+
+    - name: Cache Leiningen dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.m2
+          ~/.lein
+        key: ${{ runner.os }}-lein-${{ hashFiles('**/project.clj') }}
+        restore-keys: |
+          ${{ runner.os }}-lein-
+
+    - name: Run tests
+      run: lein test
+
+    - name: Deploy to Clojars
+      env:
+        CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
+        CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
+      run: lein deploy clojars
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## Changes
+          See [CHANGELOG.md](CHANGELOG.md) for details.
+
+          ## Installation
+          ```clojure
+          [org.clojars.hector/pickdict "${{ github.ref_name }}"]
+          ```
+        draft: false
+        prerelease: false
