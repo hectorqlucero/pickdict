@@ -1,11 +1,18 @@
 # PickDict
 
-[![Clojars Project](https://img.shiel### From Clojars (Recommended)
+[![Clojars Project](https://img.shields.io/badge/Clojars%20Project-0.1.0-blue.svg)](https://clojars.org/hectorqlucero/pickdict)
+[![License](https://img.shields.io/badge/license-EPL%202.0-blue.svg)](https://www.eclipse.org/legal/epl-2.0/)
 
-PickDict is available on [Clojars](https://clojars.org/hector/pickdict). Add this to your `project.clj`:
+A professional Clojure library that implements authentic Pick/D3-style multivalue database functionality on top of SQL databases. PickDict brings the power of multivalue databases to modern Clojure applications while maintaining full compatibility with traditional SQL databases.
+
+## Installation
+
+### From Clojars (Recommended)
+
+PickDict is available on [Clojars](https://clojars.org/hectorqlucero/pickdict). Add this to your `project.clj`:
 
 ```clojure
-[hector/pickdict "0.1.0"]
+[hectorqlucero/pickdict "0.1.0"]
 ```
 
 ### Manual Installation
@@ -26,7 +33,7 @@ If GitHub Actions fails, deploy manually:
 # 1. Get your Clojars deploy token from: https://clojars.org/tokens
 
 # 2. Set credentials
-export CLOJARS_USERNAME=your_clojars_username
+export CLOJARS_USERNAME=hectorqlucero
 export CLOJARS_PASSWORD=your_deploy_token
 
 # 3. Run deployment
@@ -60,7 +67,7 @@ The script will:
 
 1. **Update version** in `project.clj`:
    ```clojure
-   (defproject hector/pickdict "0.1.1"  ;; Increment version
+   (defproject hectorqlucero/pickdict "0.1.1"  ;; Increment version
    ```
 
 2. **Update CHANGELOG.md** with the new changes
@@ -88,7 +95,8 @@ The script will:
 Set these in your GitHub repository settings under "Secrets and variables" → "Actions":
 
 - `CLOJARS_USERNAME`: Your Clojars username
-- `CLOJARS_PASSWORD`: Your Clojars deploy token (not password)kdict.svg)](https://clojars.org/pickdict)
+- `CLOJARS_PASSWORD`: Your Clojars deploy token (not password)
+
 [![License](https://img.shields.io/badge/license-EPL%202.0-blue.svg)](https://www.eclipse.org/legal/epl-2.0/)
 
 A professional Clojure library that implements authentic Pick/D3-style multivalue database functionality on top of SQL databases. PickDict brings the power of multivalue databases to modern Clojure applications while maintaining full compatibility with traditional SQL databases.
@@ -139,10 +147,10 @@ PickDict brings this proven architecture to Clojure, enabling developers to buil
 
 ### From Clojars (Recommended)
 
-PickDict is available on [Clojars](https://clojars.org/org.clojars.hector/pickdict). Add this to your `project.clj`:
+PickDict is available on [Clojars](https://clojars.org/hectorqlucero/pickdict). Add this to your `project.clj`:
 
 ```clojure
-[org.clojars.hector/pickdict "0.1.0"]
+[hectorqlucero/pickdict "0.1.0"]
 ```
 
 ### Manual Installation
