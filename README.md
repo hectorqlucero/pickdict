@@ -1,6 +1,81 @@
 # PickDict
 
-[![Clojars Project](https://img.shields.io/clojars/v/pickdict.svg)](https://clojars.org/pickdict)
+[![Clojars Project](https://img.shiel## Installation
+
+### From Clojars (Recommended)
+
+PickDict is available on [Clojars](https://clojars.org/org.clojars.hector/pickdict). Add this to your `project.clj`:
+
+```clojure
+[org.clojars.hector/pickdict "0.1.0"]
+```
+
+### Manual Installation
+
+For local development or if you need the latest changes:
+
+```bash
+git clone https://github.com/hector/pickdict.git
+cd pickdict
+lein install
+```
+
+### Publishing New Versions
+
+This project uses GitHub Actions to automatically publish to Clojars when a new version is tagged.
+
+#### Quick Release (Recommended)
+
+Use the provided release script:
+
+```bash
+# Update version and create release
+./release.sh 0.1.1
+
+# Or for patch releases
+./release.sh 0.1.0.1
+```
+
+The script will:
+- Update `project.clj` version
+- Update `CHANGELOG.md`
+- Commit changes
+- Create and push Git tag
+- Trigger GitHub Actions for publishing
+
+#### Manual Release Process
+
+1. **Update version** in `project.clj`:
+   ```clojure
+   (defproject org.clojars.hector/pickdict "0.1.1"  ;; Increment version
+   ```
+
+2. **Update CHANGELOG.md** with the new changes
+
+3. **Commit and push** your changes:
+   ```bash
+   git add .
+   git commit -m "Bump version to 0.1.1"
+   git push origin main
+   ```
+
+4. **Create a Git tag**:
+   ```bash
+   git tag v0.1.1
+   git push origin v0.1.1
+   ```
+
+5. **GitHub Actions** will automatically:
+   - Run tests
+   - Publish to Clojars
+   - Create a GitHub release
+
+### Required Secrets
+
+Set these in your GitHub repository settings under "Secrets and variables" → "Actions":
+
+- `CLOJARS_USERNAME`: Your Clojars username
+- `CLOJARS_PASSWORD`: Your Clojars deploy token (not password)kdict.svg)](https://clojars.org/pickdict)
 [![License](https://img.shields.io/badge/license-EPL%202.0-blue.svg)](https://www.eclipse.org/legal/epl-2.0/)
 
 A professional Clojure library that implements authentic Pick/D3-style multivalue database functionality on top of SQL databases. PickDict brings the power of multivalue databases to modern Clojure applications while maintaining full compatibility with traditional SQL databases.
