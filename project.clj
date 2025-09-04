@@ -9,9 +9,10 @@
                  [cheshire "6.1.0"]]
   :source-paths ["src"]
   :test-paths ["test"]
-  :repositories [["clojars" {:url "https://clojars.org/repo"
-                             :username :env/clojars_username
-                             :password :env/clojars_password}]]
+  :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
+                                    :username :env/clojars_username
+                                    :password :env/clojars_password
+                                    :sign-releases false}]]
   :scm {:name "git"
         :url "https://github.com/hectorqlucero/pickdict"}
   :pom-addition [:developers [:developer
