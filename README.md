@@ -182,7 +182,7 @@ Get started with PickDict in minutes:
 ;; 1. Configure database connection
 (def db {:dbtype "sqlite" :dbname "inventory.db"})
 
-;; 2. Create table with multivalue fields
+;; 2. Create table with multivalue fields (dictionary created automatically)
 (pick/create-file! db "PRODUCT"
                    {:id "INTEGER PRIMARY KEY AUTOINCREMENT"
                     :name "TEXT NOT NULL"
@@ -190,23 +190,20 @@ Get started with PickDict in minutes:
                     :categories "TEXT"      ;; Multivalue: "electronics]popular]new"
                     :stock_levels "TEXT"})  ;; Multivalue: "10]5]20"
 
-;; 3. Create dictionary for data interpretation
-(pick/create-dictionary! db "PRODUCT_DICT")
-
-;; 4. Define dictionary fields
+;; 3. Define dictionary fields
 (pick/define-dictionary-field! db "PRODUCT_DICT" "PRODUCT_NAME" "A" "1" "" "Product Name")
 (pick/define-dictionary-field! db "PRODUCT_DICT" "PRICE" "A" "2" "" "Unit Price")
 (pick/define-dictionary-field! db "PRODUCT_DICT" "CATEGORIES" "A" "3" "" "Categories")
 (pick/define-dictionary-field! db "PRODUCT_DICT" "TOTAL_STOCK" "C" "" "SUM:STOCK_LEVELS" "Total Stock")
 
-;; 5. Create and query data
+;; 4. Create and query data
 (pick/create-record! db "PRODUCT"
                      {:name "Wireless Headphones"
                       :price 99.99
                       :categories "electronics]audio]wireless"
                       :stock_levels "50]30]20"})
 
-;; 6. Query with automatic interpretation
+;; 5. Query with automatic interpretation
 (pick/find-all db "PRODUCT")
 ;; Returns: {:PRODUCT_NAME "Wireless Headphones"
 ;;           :PRICE 99.99
