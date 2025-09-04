@@ -6,8 +6,21 @@ on:
       - 'v*.*.*'
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check secrets
+      run: |
+        echo "CLOJARS_USERNAME exists: ${{ secrets.CLOJARS_USERNAME != '' }}"
+        echo "CLOJARS_PASSWORD exists: ${{ secrets.CLOJARS_PASSWORD != '' }}"
+
   publish:
     runs-on: ubuntu-latest
+    needs: test
+    if: ${{ needs.test.result == 'success' }}
 
     steps:
     - name: Checkout code
