@@ -49,9 +49,7 @@ Get PickDict running in your project in under 5 minutes:
                     :stock_levels "TEXT"})  ;; Will store: "50]25]10"
 
 ;; The dictionary table is automatically created as "PRODUCT_DICT"
-(pick/define-dictionary-field db "PRODUCT_DICT" "PRODUCT_NAME" "A" "1" "" "Product Name")
-(pick/define-dictionary-field db "PRODUCT_DICT" "PRICE" "A" "2" "" "Unit Price")
-(pick/define-dictionary-field db "PRODUCT_DICT" "CATEGORIES" "A" "3" "" "Categories")
+;; 3. Dictionary fields are created automatically - you can add computed fields
 (pick/define-dictionary-field db "PRODUCT_DICT" "TOTAL_STOCK" "C" "" "SUM:STOCK_LEVELS" "Total Stock")
 ```
 
@@ -595,11 +593,11 @@ Get started with PickDict in minutes:
                     :categories "TEXT"      ;; Multivalue: "electronics]popular]new"
                     :stock_levels "TEXT"})  ;; Multivalue: "10]5]20"
 
-;; 3. Define dictionary fields
-(pick/define-dictionary-field db "PRODUCT_DICT" "PRODUCT_NAME" "A" "1" "" "Product Name")
-(pick/define-dictionary-field db "PRODUCT_DICT" "PRICE" "A" "2" "" "Unit Price")
-(pick/define-dictionary-field db "PRODUCT_DICT" "CATEGORIES" "A" "3" "" "Categories")
-(pick/define-dictionary-field db "PRODUCT_DICT" "TOTAL_STOCK" "C" "" "SUM:STOCK_LEVELS" "Total Stock")
+;; Dictionary fields are created automatically (Pick/D3 style):
+;; - NAME (maps to name column)
+;; - PRICE (maps to price column)  
+;; - CATEGORIES (maps to categories column)
+;; - STOCK_LEVELS (maps to stock_levels column)
 
 ;; 4. Create and query data
 (pick/create-record! db "PRODUCT"
@@ -650,19 +648,28 @@ PickDict supports three fundamental field types:
 ### Database Operations
 
 #### `(create-file! db table-name schema)`
-Creates a new table with the specified schema.
+Creates a new table with the specified schema and automatically creates a dictionary with Attribute fields for each column (Pick/D3 style).
 
 **Parameters:**
 - `db`: Database connection map
 - `table-name`: String name of the table to create
 - `schema`: Map of column names to SQL types
 
+**Automatic Dictionary Creation:**
+- Creates a dictionary table named `{TABLE_NAME}_DICT`
+- Automatically creates Attribute (A) type fields for each column (except 'id')
+- Field names are uppercase versions of column names
+- Positions are assigned sequentially starting from 1
+- Descriptions are human-readable versions of column names
+
 **Example:**
 ```clojure
-(pick/create-file! db "CUSTOMER"
+(pick/create-file! db "PRODUCT"
                    {:id "INTEGER PRIMARY KEY AUTOINCREMENT"
                     :name "TEXT NOT NULL"
-                    :email "TEXT"})
+                    :price "REAL"
+                    :categories "TEXT"})
+;; Automatically creates dictionary fields: NAME, PRICE, CATEGORIES
 ```
 
 #### `(drop-table! db table-name)`
