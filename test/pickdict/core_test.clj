@@ -38,9 +38,9 @@
           ;; Verify that the automatic dictionary fields work
           (is (= "Test Product" (:NAME product)) "NAME field should be mapped")
           (is (= 29.99 (:PRICE product)) "PRICE field should be mapped")
-          ;; Note: Multivalue parsing not implemented yet, so these come back as strings
-          (is (= "test]category" (:CATEGORIES product)) "CATEGORIES field should be mapped")
-          (is (= "10]5" (:STOCK_LEVELS product)) "STOCK_LEVELS field should be mapped")))
+          ;; Multivalue fields are now parsed into vectors
+          (is (= ["test" "category"] (:CATEGORIES product)) "CATEGORIES field should be parsed into vector")
+          (is (= ["10" "5"] (:STOCK_LEVELS product)) "STOCK_LEVELS field should be parsed into vector")))
 
       ;; Clean up
       (try (pick/drop-table db "TEST_PRODUCT") (catch Exception _))

@@ -1,4 +1,4 @@
-(defproject org.clojars.hector/pickdict "0.1.1"
+(defproject org.clojars.hector/pickdict "0.2.0"
   :description "Pick/D3-style multivalue database layer for SQL databases"
   :url "https://github.com/hectorqlucero/pickdict"
   :license {:name "EPL-2.0"

@@ -361,6 +361,8 @@ PickDict uses the `]` delimiter to store multiple values in a single field:
 ;; PickDict returns: ["electronics" "gaming" "audio"]
 ```
 
+Multivalue fields are automatically parsed into vectors when retrieved through dictionary operations.
+
 ### Dictionary System
 
 Each table has one dictionary that defines multiple interpretations of the data:
@@ -537,14 +539,14 @@ PickDict brings this proven architecture to Clojure, enabling developers to buil
 ## Key Features
 
 ✨ **Authentic Pick/D3 Architecture** - True multivalue database implementation with one dictionary per table
-🔢 **Multivalue Fields** - Store arrays of related data in single fields using configurable delimiters
+🔢 **Multivalue Fields** - Store arrays of related data in single fields using configurable delimiters, automatically parsed into vectors on retrieval
 🧮 **Advanced Expression Engine** - Full Clojure expressions with automatic variable binding
 🔗 **Relationship Support** - Built-in translation fields for cross-table lookups
 ⚡ **High Performance** - Optimized SQL backend with connection pooling
 🔄 **Legacy Compatibility** - Supports traditional MULTIPLY/SUM operations
 🛡️ **Type Safety** - Comprehensive error handling and validation
 📊 **SQLite Backend** - Persistent storage with `clojure.java.jdbc`
-🧪 **Comprehensive Testing** - Full test suite with 14 assertions
+🧪 **Comprehensive Testing** - Full test suite with automatic multivalue parsing validation
 
 ## Installation
 
@@ -611,7 +613,7 @@ Get started with PickDict in minutes:
 ;; Returns: {:PRODUCT_NAME "Wireless Headphones"
 ;;           :PRICE 99.99
 ;;           :CATEGORIES ["electronics" "audio" "wireless"]
-;;           :TOTAL_STOCK 100}
+;;           :STOCK_LEVELS ["50" "30" "20"]}
 ```
 
 ## Core Concepts
@@ -720,12 +722,12 @@ Creates a new record in the specified table.
 #### `(find-all db table-name)`
 Retrieves all records from a table with dictionary interpretation.
 
-**Returns:** Sequence of maps with interpreted field values
+**Returns:** Sequence of maps with interpreted field values. Multivalue fields are automatically parsed into vectors.
 
 #### `(find-by-id db table-name id)`
 Retrieves a single record by ID with dictionary interpretation.
 
-**Returns:** Map with interpreted field values or `nil` if not found
+**Returns:** Map with interpreted field values or `nil` if not found. Multivalue fields are automatically parsed into vectors.
 
 #### `(update-record! db table-name id data)`
 Updates an existing record.

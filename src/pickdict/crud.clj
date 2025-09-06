@@ -1,6 +1,7 @@
 (ns pickdict.crud
   (:require [pickdict.database :as db]
             [pickdict.dictionary :as dict]
+            [pickdict.multivalue :as mv]
             [clojure.string :as str]))
 
 ;; --- Dictionary Transformation Helpers ---
@@ -29,7 +30,10 @@
   (let [source-key (dict-field->source-key field-name)
         source-value (get record source-key)]
     (if (some? source-value)
-      (assoc record field-name source-value)
+      (let [parsed-value (if (and (string? source-value) (str/includes? source-value "]"))
+                           (mv/parse-multivalue source-value)
+                           source-value)]
+        (assoc record field-name parsed-value))
       record)))
 
 
