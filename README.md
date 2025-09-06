@@ -1,7 +1,8 @@
 # PickDict
 
-[![Clojars Project](https://img.shields.io/badge/Clojars%20Project-0.2.0-blue.svg)](https://clojars.org/org.clojars.hector/pickdict)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/hectorqlucero/pickdict/actions)
+[![Clojars Project](https://img.shields.io/badge/Clojars%20Project-0.3.0-blue.svg)](https://clojars.org/org.clojars.hector/pickdict)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](htt  (pick/define-dictionary-field db "ORDERS_DICT" "CUSTOMER_NAME" "T" "2" "TCUSTOMER;FULL_NAME" "Customer Name")
+  (pick/define-dictionary-field db "ORDERS_DICT" "PRODUCT_NAMES" "T" "3" "TPRODUCT;NAME" "Product Names")://github.com/hectorqlucero/pickdict/actions)
 [![License](https://img.shields.io/badge/license-EPL%202.0-blue.svg)](https://www.eclipse.org/legal/epl-2.0/)
 [![Clojure](https://img.shields.io/badge/clojure-1.12+-blue.svg)](https://clojure.org/)
 
@@ -29,7 +30,7 @@ Get PickDict running in your project in under 5 minutes:
 
 ```clojure
 ;; project.clj
-[org.clojars.hector/pickdict "0.2.0"]
+[org.clojars.hector/pickdict "0.3.0"]
 ```
 
 ### 2. Basic Setup
@@ -119,7 +120,7 @@ This approach is particularly powerful for:
 ### Clojars (Recommended)
 
 ```clojure
-[org.clojars.hector/pickdict "0.2.0"]
+[org.clojars.hector/pickdict "0.3.0"]
 ```
 ```
 
@@ -168,7 +169,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
                     :stock_levels "TEXT"})   ;; Multivalue: warehouse1]warehouse2]store
 
 ;; Create order table
-(pick/create-file! db "ORDER"
+(pick/create-file! db "ORDERS"
                    {:id "INTEGER PRIMARY KEY AUTOINCREMENT"
                     :customer_id "INTEGER"
                     :product_ids "TEXT"     ;; Multivalue: product_id1]product_id2
@@ -183,11 +184,11 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
 ```clojure
 ;; Note: A-type (Attribute) fields are created automatically by create-file!
 ;; The following fields are created automatically for CUSTOMER table:
-;; - FIRST_NAME (A-type, position 1)
-;; - LAST_NAME (A-type, position 2) 
-;; - EMAIL (A-type, position 3)
-;; - PHONE_NUMBERS (A-type, position 4)
-;; - ADDRESSES (A-type, position 5)
+;; - FIRST_NAME (A-type, position 2)
+;; - LAST_NAME (A-type, position 3) 
+;; - EMAIL (A-type, position 4)
+;; - PHONE_NUMBERS (A-type, position 5)
+;; - ADDRESSES (A-type, position 6)
 
 ;; Add computed and translation fields on top of the automatic A-type fields
 (pick/define-dictionary-field db "CUSTOMER_DICT" "FULL_NAME" "C" "" "(str FIRST_NAME \" \" LAST_NAME)" "Full Name")
@@ -195,12 +196,12 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
 
 ;; Note: A-type (Attribute) fields are created automatically by create-file!
 ;; The following fields are created automatically for PRODUCT table:
-;; - NAME (A-type, position 1)
-;; - DESCRIPTION (A-type, position 2)
-;; - PRICE (A-type, position 3)
-;; - CATEGORIES (A-type, position 4)
-;; - TAGS (A-type, position 5)
-;; - STOCK_LEVELS (A-type, position 6)
+;; - NAME (A-type, position 2)
+;; - DESCRIPTION (A-type, position 3)
+;; - PRICE (A-type, position 4)
+;; - CATEGORIES (A-type, position 5)
+;; - TAGS (A-type, position 6)
+;; - STOCK_LEVELS (A-type, position 7)
 
 ;; Add computed fields on top of the automatic A-type fields
 (pick/define-dictionary-field db "PRODUCT_DICT" "TOTAL_STOCK" "C" "" "SUM:STOCK_LEVELS" "Total Stock")
@@ -209,20 +210,20 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
 
 ;; Note: A-type (Attribute) fields are created automatically by create-file!
 ;; The following fields are created automatically for ORDER table:
-;; - CUSTOMER_ID (A-type, position 1)
-;; - PRODUCT_IDS (A-type, position 2)
-;; - QUANTITIES (A-type, position 3)
-;; - UNIT_PRICES (A-type, position 4)
-;; - ORDER_DATE (A-type, position 5)
-;; - STATUS (A-type, position 6)
+;; - CUSTOMER_ID (A-type, position 2)
+;; - PRODUCT_IDS (A-type, position 3)
+;; - QUANTITIES (A-type, position 4)
+;; - UNIT_PRICES (A-type, position 5)
+;; - ORDER_DATE (A-type, position 6)
+;; - STATUS (A-type, position 7)
 
 ;; Add translation and computed fields
-(pick/define-dictionary-field db "ORDER_DICT" "CUSTOMER_NAME" "T" "1" "TCUSTOMER;FULL_NAME" "Customer Name")
-(pick/define-dictionary-field db "ORDER_DICT" "PRODUCT_NAMES" "T" "2" "TPRODUCT;NAME" "Product Names")
-(pick/define-dictionary-field db "ORDER_DICT" "LINE_TOTALS" "C" "" "MULTIPLY:QUANTITIES,UNIT_PRICES" "Line Totals")
-(pick/define-dictionary-field db "ORDER_DICT" "SUBTOTAL" "C" "" "SUM:LINE_TOTALS" "Subtotal")
-(pick/define-dictionary-field db "ORDER_DICT" "TAX" "C" "" "(* SUBTOTAL 0.08)" "Tax (8%)")
-(pick/define-dictionary-field db "ORDER_DICT" "TOTAL" "C" "" "(+ SUBTOTAL TAX)" "Order Total")
+(pick/define-dictionary-field db "ORDERS_DICT" "CUSTOMER_NAME" "T" "2" "TCUSTOMER;FULL_NAME" "Customer Name")
+(pick/define-dictionary-field db "ORDERS_DICT" "PRODUCT_NAMES" "T" "3" "TPRODUCT;NAME" "Product Names")
+(pick/define-dictionary-field db "ORDERS_DICT" "LINE_TOTALS" "C" "" "MULTIPLY:QUANTITIES,UNIT_PRICES" "Line Totals")
+(pick/define-dictionary-field db "ORDERS_DICT" "SUBTOTAL" "C" "" "SUM:LINE_TOTALS" "Subtotal")
+(pick/define-dictionary-field db "ORDERS_DICT" "TAX" "C" "" "(* SUBTOTAL 0.08)" "Tax (8%)")
+(pick/define-dictionary-field db "ORDERS_DICT" "TOTAL" "C" "" "(+ SUBTOTAL TAX)" "Order Total")
 ```
 
 ### Create Sample Data
@@ -261,7 +262,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
                       :stock_levels "30]15]5"})
 
 ;; Create orders
-(pick/create-record db "ORDER"
+(pick/create-record db "ORDERS"
                      {:customer_id 1
                       :product_ids "1]2"
                       :quantities "2]1"
@@ -269,7 +270,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
                       :order_date "2025-01-15"
                       :status "completed"})
 
-(pick/create-record db "ORDER"
+(pick/create-record db "ORDERS"
                      {:customer_id 2
                       :product_ids "1"
                       :quantities "1"
@@ -301,7 +302,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
   (println))
 
 ;; Get all orders with full interpretation
-(def orders (pick/find-all db "ORDER"))
+(def orders (pick/find-all db "ORDERS"))
 (doseq [order orders]
   (println (str "Order #" (:ID order)))
   (println (str "  Customer: " (:CUSTOMER_NAME order)))
@@ -328,7 +329,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
                      {:stock_levels "45]20]8"})
 
 ;; Update order status
-(pick/update-record db "ORDER" 2
+(pick/update-record db "ORDERS" 2
                      {:status "shipped"})
 ```
 
@@ -341,7 +342,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
 
 ;; Find orders by customer
 (def customer-orders
-  (filter #(= (:CUSTOMER_NAME %) "John Doe") (pick/find-all db "ORDER")))
+  (filter #(= (:CUSTOMER_NAME %) "John Doe") (pick/find-all db "ORDERS")))
 
 ;; Calculate total inventory value
 (def total-inventory-value

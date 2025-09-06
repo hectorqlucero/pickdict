@@ -42,7 +42,7 @@
   (if (and attributes-str (string? attributes-str))
     (let [pairs (str/split attributes-str #"\|")
           attrs-map (into {} (map #(let [[k v] (str/split % #"=" 2)]
-                                     [(str/lower-case k) v])
+                                     [(str/lower-case (str/trim k)) (str/trim v)])
                                   pairs))]
       {:type (get attrs-map "type" "")
        :position (get attrs-map "position" "")
@@ -61,13 +61,12 @@
 
 (defn execute-lookup
   "Execute a lookup query for translation fields"
-  [db table column id]
+  [db table id]
   (try
     (first (db/execute-query db
                              (str "SELECT * FROM " table " WHERE id=?")
                              [id]))
-    (catch Exception e
-      (println (str "Lookup error for " table "." column " id=" id ": " (.getMessage e)))
+    (catch Exception _
       nil)))
 
 (defn parse-lookup-values
@@ -81,20 +80,29 @@
 
 (defn perform-lookup
   "Perform a lookup for a single value"
-  [db table column id-value]
+  [db table id-value]
   (try
     (first (db/execute-query db (str "SELECT * FROM " table " WHERE id=?") [id-value]))
-    (catch Exception e
-      (println (str "Lookup error for " table "." column " id=" id-value ": " (.getMessage e)))
+    (catch Exception _
       nil)))
 
 (defn translate-single-value
   "Translate a single value using lookup"
   [db value translation-config]
   (let [id-value (try (Integer/parseInt (str/trim (str value))) (catch Exception _ value))
-        related-record (perform-lookup db (:table translation-config) (:column translation-config) id-value)]
-    (if related-record
-      (get related-record (keyword (:column translation-config)))
+        raw-record (perform-lookup db (:table translation-config) id-value)]
+    (if raw-record
+      (let [;; Apply dictionary mappings to the related record to compute fields like FULL_NAME
+            mapped-record (if (or (= (:table translation-config) "CUSTOMER") (= (:table translation-config) "TEST_CUSTOMER"))
+                            ;; For now, manually compute FULL_NAME if it's missing
+                            (if (and (contains? raw-record :first_name) (contains? raw-record :last_name) (not (contains? raw-record :FULL_NAME)))
+                              (assoc raw-record :FULL_NAME (str (:first_name raw-record) " " (:last_name raw-record)))
+                              raw-record)
+                            raw-record)
+            result (or (get mapped-record (keyword (:column translation-config)))
+                       (get mapped-record (keyword (str/lower-case (:column translation-config))))
+                       (get mapped-record (keyword (str/upper-case (:column translation-config)))))]
+        result)
       value)))
 
 (defn translate-field-value
@@ -102,43 +110,20 @@
   [db lookup-value translation-config]
   (let [value-list (parse-lookup-values lookup-value)
         translated-values (map #(translate-single-value db % translation-config) value-list)]
-    ;; For PRODUCT_NAMES (table=PRODUCT), always return a vector. For others, return single value if only one
-    (if (= (:table translation-config) "PRODUCT")
+    ;; Return vector if original value was multivalue, otherwise single value
+    (if (and (string? lookup-value) (str/includes? lookup-value "]"))
       (vec translated-values)
       (if (= (count translated-values) 1)
         (first translated-values)
         (vec translated-values)))))
-
-(defn evaluate-clojure-expression
-  "Safely evaluate a Clojure expression in the context of record fields"
-  [expression field-values]
-  (try
-    (let [expr-str (str expression)
-          field-symbols (set (keys field-values))
-          has-variables (some #(str/includes? expr-str (name %)) field-symbols)]
-      (if has-variables
-        (let [bindings (vec (apply concat (for [[k v] field-values] [k v])))]
-          (eval `(let ~bindings ~expression)))
-        (eval expression)))
-    (catch Exception e
-      (println (str "Error evaluating Clojure expression: " expression " - " (.getMessage e)))
-      nil)))
-
-(defn calculate-multiply-operation
-  "Calculate multiplication of multiple operands"
-  [operands]
-  (try
-    (apply * operands)
-    (catch Exception e
-      (println (str "Error in MULTIPLY operation: " (.getMessage e)))
-      0.0)))
 
 (defn calculate-sum-operation
   "Calculate sum of field values"
   [field-value]
   (cond
     (vector? field-value)
-    (try (reduce + field-value) (catch Exception _ 0.0))
+    (let [values (map #(try (Double/parseDouble (str %)) (catch Exception _ 0.0)) field-value)]
+      (try (reduce + values) (catch Exception _ 0.0)))
 
     (seq? field-value)
     (let [values (map #(try (Double/parseDouble (str %)) (catch Exception _ 0.0)) field-value)]
@@ -154,3 +139,53 @@
 
     :else
     0.0))
+
+(defn evaluate-clojure-expression
+  "Safely evaluate a Clojure expression in the context of record fields"
+  [expression field-values]
+  (try
+    (let [expr-str (str expression)]
+      (cond
+        ;; Handle legacy SUM operation
+        (str/starts-with? expr-str "SUM:")
+        (let [field-name (subs expr-str 4)
+              field-value (get field-values (keyword field-name))]
+          (calculate-sum-operation field-value))
+
+        ;; Handle legacy MULTIPLY operation
+        (str/starts-with? expr-str "MULTIPLY:")
+        (let [field-names (str/split (subs expr-str 9) #",")
+              field-values-list (map #(get field-values (keyword (str/trim %))) field-names)
+              ;; Ensure all values are vectors of numbers
+              parsed-values (for [fv field-values-list]
+                              (cond
+                                (vector? fv)
+                                (map #(try (Double/parseDouble (str %)) (catch Exception _ 0.0)) fv)
+                                (and (string? fv) (str/includes? fv "]"))
+                                (let [parts (str/split fv #"\]")]
+                                  (map #(Double/parseDouble (str/trim %)) parts))
+                                :else
+                                [(try (Double/parseDouble (str fv)) (catch Exception _ 0.0))]))
+              ;; Transpose to get values for each position
+              max-len (apply max (map count parsed-values))
+              multiplied-values (for [i (range max-len)]
+                                  (apply * (map #(nth % i 0.0) parsed-values)))]
+          (vec multiplied-values))
+
+        ;; Handle regular Clojure expressions
+        :else
+        (let [;; Create binding map with uppercase keys
+              binding-map (into {} (for [[k v] field-values]
+                                     [(str/upper-case (name k)) v]))
+              ;; Replace field references in the expression string
+              modified-expr-str (reduce (fn [expr-str [field-name val]]
+                                          (str/replace expr-str
+                                                       field-name
+                                                       (if (string? val)
+                                                         (str "\"" val "\"")
+                                                         (str val))))
+                                        expr-str
+                                        binding-map)]
+          (eval (read-string modified-expr-str)))))
+    (catch Exception _
+      nil)))

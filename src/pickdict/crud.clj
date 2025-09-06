@@ -39,9 +39,42 @@
 
 
 (defn apply-dictionary-field-mapping [db table-name record field-attrs]
-  (let [{:keys [field-type]} field-attrs]
-    (if (= field-type "A")
+  (let [{:keys [field-name field-type conversion]} field-attrs]
+    (cond
+      (= field-type "A")
       (apply-direct-field-mapping db table-name record field-attrs)
+
+      (= field-type "C")
+      (let [computed-value (if (and conversion (not (str/blank? conversion)))
+                             (dict/evaluate-clojure-expression conversion record)
+                             nil)]
+        (if (some? computed-value)
+          (assoc record field-name computed-value)
+          record))
+
+      (= field-type "T")
+      (let [translation-config (dict/parse-translation-conversion conversion)]
+        (if translation-config
+          (let [position (:position field-attrs)
+                source-key (if (and position (not= position ""))
+                             ;; Find field by position in original table
+                             (let [table-columns (db/get-table-columns db table-name)
+                                   ;; Skip 'id' column as it's not in the automatic dictionary fields
+                                   data-columns (remove #(= % "id") table-columns)
+                                   position-num (try (Integer/parseInt position) (catch Exception _ 1))
+                                   source-column (nth data-columns (dec position-num) nil)]
+                               (when source-column
+                                 (keyword source-column)))
+                             ;; Fallback to deriving from field name
+                             (dict-field->source-key field-name))
+                source-value (get record source-key)]
+            (if (some? source-value)
+              (let [translated-value (dict/translate-field-value db source-value translation-config)]
+                (assoc record field-name translated-value))
+              record))
+          record))
+
+      :else
       record)))
 
 
@@ -50,17 +83,18 @@
 (defn apply-dictionary-mappings [db table-name record]
   (try
     (let [dict-fields (get-dictionary-fields db table-name)]
-      (if (map? (reduce (fn [rec dict-field]
-                          (let [field-attrs (parse-dictionary-field-attributes dict-field)]
-                            (apply-dictionary-field-mapping db table-name rec field-attrs)))
-                        record
-                        dict-fields))
-        (reduce (fn [rec dict-field]
-                  (let [field-attrs (parse-dictionary-field-attributes dict-field)]
-                    (apply-dictionary-field-mapping db table-name rec field-attrs)))
-                record
-                dict-fields)
-        record))
+      (loop [current-record record
+             iterations 0]
+        (if (>= iterations 5) ; Prevent infinite loops
+          current-record
+          (let [new-record (reduce (fn [rec dict-field]
+                                     (let [field-attrs (parse-dictionary-field-attributes dict-field)]
+                                       (apply-dictionary-field-mapping db table-name rec field-attrs)))
+                                   current-record
+                                   dict-fields)]
+            (if (= new-record current-record)
+              new-record ; No changes, we're done
+              (recur new-record (inc iterations)))))))
     (catch Exception _
       record)))
 
@@ -105,8 +139,6 @@
   (swap! computed-fields-registry update table-name dissoc field-name))
 
 (defn apply-computed-fields [table-name record]
-  ;; (when (not (map? record))
-  ;;   (println "ERROR: apply-computed-fields received non-map:" (type record) record))
   (let [computed-fns (get @computed-fields-registry table-name)]
     (if computed-fns
       (reduce (fn [rec [field f]]

@@ -77,20 +77,18 @@
 ;; Error Handling
 (defn safe-db-operation
   "Execute database operation with proper error handling"
-  [operation error-message]
+  [operation]
   (try
     (operation)
     (catch Exception e
-      (println (str error-message ": " (.getMessage e)))
       (throw e))))
 
 (defn try-db-operation
   "Execute database operation, returning nil on error"
-  [operation error-message]
+  [operation]
   (try
     (operation)
-    (catch Exception e
-      (println (str error-message ": " (.getMessage e)))
+    (catch Exception _
       nil)))
 
 ;; Table Operations
@@ -99,30 +97,26 @@
   [db table-name]
   (try-db-operation
    #(let [result (execute-query db (build-table-exists-sql) [table-name])]
-      (boolean (seq result)))
-   (str "Error checking if table exists: " table-name)))
+      (boolean (seq result)))))
 
 (defn get-table-columns
   "Get column names for a table"
   [db table-name]
   (try-db-operation
    #(let [result (execute-query db (build-table-info-sql table-name) [])]
-      (map :name result))
-   (str "Error getting table columns for " table-name)))
+      (map :name result))))
 
 (defn create-table
   "Create a table with given columns"
   [db table-name columns]
   (try-db-operation
-   #(execute-command db (build-create-table-sql table-name columns) [])
-   (str "Error creating table " table-name)))
+   #(execute-command db (build-create-table-sql table-name columns) [])))
 
 (defn drop-table
   "Drop a table from the database"
   [db table-name]
   (try-db-operation
-   #(execute-command db (build-drop-table-sql table-name) [])
-   (str "Error dropping table " table-name)))
+   #(execute-command db (build-drop-table-sql table-name) [])))
 
 ;; Record Operations
 ;; Record Operations
@@ -143,8 +137,7 @@
   [db table-name record]
   (safe-db-operation
    #(let [insert-result (jdbc/insert! db table-name record)]
-      (extract-generated-id insert-result))
-   (str "Error inserting record into " table-name)))
+      (extract-generated-id insert-result))))
 
 ;; Query Operations
 (defn find-by-id
@@ -153,8 +146,7 @@
   (try-db-operation
    #(let [sql (build-select-sql table-name :where "id = ?")
           result (execute-query db sql [id])]
-      (first result))
-   (str "Error finding record by ID in " table-name)))
+      (first result))))
 
 (defn find-by-criteria
   "Find records by criteria"
@@ -163,15 +155,13 @@
         values (vals criteria)
         sql (build-select-sql table-name :where where-clause)]
     (try-db-operation
-     #(execute-query db sql values)
-     (str "Error finding records by criteria in " table-name))))
+     #(execute-query db sql values))))
 
 (defn find-all
   "Find all records in a table"
   [db table-name]
   (try-db-operation
-   #(execute-query db (build-select-sql table-name) [])
-   (str "Error finding all records in " table-name)))
+   #(execute-query db (build-select-sql table-name) [])))
 
 (defn update-record
   "Update a record by ID"
@@ -181,23 +171,20 @@
           values (vals updates)
           sql (build-update-sql table-name columns)
           params (conj (vec values) id)]
-      (execute-command db sql params))
-   (str "Error updating record in " table-name)))
+      (execute-command db sql params))))
 
 (defn delete-record
   "Delete a record by ID"
   [db table-name id]
   (try-db-operation
-   #(execute-command db (build-delete-sql table-name) [id])
-   (str "Error deleting record from " table-name)))
+   #(execute-command db (build-delete-sql table-name) [id])))
 
 (defn count-records
   "Count records in a table"
   [db table-name]
   (try-db-operation
    #(let [result (execute-query db (build-count-sql table-name) [])]
-      (:count (first result) 0))
-   (str "Error counting records in " table-name)));; Utility Functions
+      (:count (first result) 0))));; Utility Functions
 ;; Utility Functions
 (defn transaction
   "Execute operations within a database transaction"
@@ -205,12 +192,10 @@
   (safe-db-operation
    #(jdbc/with-db-transaction [tx db]
       (doseq [op operations]
-        (op tx)))
-   "Error executing transaction"))
+        (op tx)))))
 
 (defn batch-insert
   "Insert multiple records in a batch"
   [db table-name records]
   (safe-db-operation
-   #(jdbc/insert-multi! db table-name records)
-   (str "Error batch inserting records into " table-name)))
+   #(jdbc/insert-multi! db table-name records)))
