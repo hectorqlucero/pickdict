@@ -57,7 +57,7 @@ Get PickDict running in your project in under 5 minutes:
 
 ```clojure
 ;; Create a product with multivalue data
-(pick/create-record! db "PRODUCT"
+(pick/create-record db "PRODUCT"
                      {:name "Gaming Headset"
                       :price 199.99
                       :categories "electronics]gaming]audio"
@@ -66,7 +66,7 @@ Get PickDict running in your project in under 5 minutes:
 ;; Query with automatic interpretation
 (pick/find-all db "PRODUCT")
 ;; Returns:
-;; [{:PRODUCT_NAME "Gaming Headset"
+;; [{:NAME "Gaming Headset"
 ;;   :PRICE 199.99
 ;;   :CATEGORIES ["electronics" "gaming" "audio"]
 ;;   :TOTAL_STOCK 175}]
@@ -229,14 +229,14 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
 
 ```clojure
 ;; Create customers
-(pick/create-record! db "CUSTOMER"
+(pick/create-record db "CUSTOMER"
                      {:first_name "John"
                       :last_name "Doe"
                       :email "john.doe@email.com"
                       :phone_numbers "555-0101]555-0102]555-0103"
                       :addresses "123 Main St]456 Oak Ave]789 Pine Rd"})
 
-(pick/create-record! db "CUSTOMER"
+(pick/create-record db "CUSTOMER"
                      {:first_name "Jane"
                       :last_name "Smith"
                       :email "jane.smith@email.com"
@@ -244,7 +244,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
                       :addresses "321 Elm St]654 Maple Dr"})
 
 ;; Create products
-(pick/create-record! db "PRODUCT"
+(pick/create-record db "PRODUCT"
                      {:name "Wireless Gaming Headset"
                       :description "High-quality gaming audio"
                       :price 199.99
@@ -252,7 +252,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
                       :tags "bestseller]featured]premium"
                       :stock_levels "50]25]10"})
 
-(pick/create-record! db "PRODUCT"
+(pick/create-record db "PRODUCT"
                      {:name "Mechanical Keyboard"
                       :description "RGB backlit mechanical keyboard"
                       :price 149.99
@@ -261,7 +261,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
                       :stock_levels "30]15]5"})
 
 ;; Create orders
-(pick/create-record! db "ORDER"
+(pick/create-record db "ORDER"
                      {:customer_id 1
                       :product_ids "1]2"
                       :quantities "2]1"
@@ -269,7 +269,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
                       :order_date "2025-01-15"
                       :status "completed"})
 
-(pick/create-record! db "ORDER"
+(pick/create-record db "ORDER"
                      {:customer_id 2
                       :product_ids "1"
                       :quantities "1"
@@ -292,7 +292,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
 ;; Get all products with computed fields
 (def products (pick/find-all db "PRODUCT"))
 (doseq [product products]
-  (println (str "Product: " (:PRODUCT_NAME product)))
+  (println (str "Product: " (:NAME product)))
   (println (str "  Price: $" (:PRICE product)))
   (println (str "  Categories: " (:CATEGORIES product)))
   (println (str "  Total Stock: " (:TOTAL_STOCK product)))
@@ -303,7 +303,7 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
 ;; Get all orders with full interpretation
 (def orders (pick/find-all db "ORDER"))
 (doseq [order orders]
-  (println (str "Order #" (:ORDER_ID order)))
+  (println (str "Order #" (:ID order)))
   (println (str "  Customer: " (:CUSTOMER_NAME order)))
   (println (str "  Products: " (:PRODUCT_NAMES order)))
   (println (str "  Quantities: " (:QUANTITIES order)))
@@ -319,16 +319,16 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
 
 ```clojure
 ;; Update customer information
-(pick/update-record! db "CUSTOMER" 1
+(pick/update-record db "CUSTOMER" 1
                      {:phone_numbers "555-0101]555-0102]555-0104"
                       :email "john.doe@newemail.com"})
 
 ;; Update product stock
-(pick/update-record! db "PRODUCT" 1
+(pick/update-record db "PRODUCT" 1
                      {:stock_levels "45]20]8"})
 
 ;; Update order status
-(pick/update-record! db "ORDER" 2
+(pick/update-record db "ORDER" 2
                      {:status "shipped"})
 ```
 
@@ -394,12 +394,12 @@ ORDER_DICT → ORDER table interpretations
 
 ```clojure
 (create-file! db table-name schema)           ;; Create table
-(drop-table! db table-name)                  ;; Drop table
-(create-record! db table-name data)          ;; Insert record
+(drop-table db table-name)                   ;; Drop table
+(create-record db table-name data)           ;; Insert record
 (find-all db table-name)                     ;; Get all records
 (find-by-id db table-name id)                ;; Get record by ID
-(update-record! db table-name id data)       ;; Update record
-(delete-record! db table-name id)            ;; Delete record
+(update-record db table-name id data)        ;; Update record
+(delete-record db table-name id)             ;; Delete record
 ```
 
 ### Dictionary Operations
@@ -459,7 +459,7 @@ PickDict supports both legacy operations and full Clojure expressions:
 ### Error Handling
 ```clojure
 (try
-  (pick/create-record! db "PRODUCT" product-data)
+  (pick/create-record db "PRODUCT" product-data)
   (catch Exception e
     (log/error "Failed to create product:" (.getMessage e))))
 ```
