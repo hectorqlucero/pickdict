@@ -16,3 +16,10 @@ pom.xml.asc
 /.prepl-port
 .hgignore
 .hg/
+
+# IDE and development files
+.calva/
+.clj-kondo/
+.lsp/
+.lein-failures
+.lein-repl-history
