@@ -40,3 +40,14 @@
    ;; This is a placeholder - the actual implementation would be complex
    ;; For now, just return the raw records
    (crud/read-all-records db table-name)))
+
+(defn create-file!
+  "Create a table and its associated dictionary table (Pick/D3 style)"
+  ([table-name schema] (create-file! db/default-db table-name schema))
+  ([db table-name schema]
+   ;; Create the main table
+   (create-table db table-name schema)
+   ;; Create the dictionary table
+   (let [dict-name (str table-name "_DICT")]
+     (create-dictionary-table db dict-name))
+   true))
