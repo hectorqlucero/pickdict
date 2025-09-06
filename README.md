@@ -1,6 +1,6 @@
 # PickDict
 
-[![Clojars Project](https://img.shields.io/badge/Clojars%20Project-0.1.1-blue.svg)](https://clojars.org/org.clojars.hector/pickdict)
+[![Clojars Project](https://img.shields.io/badge/Clojars%20Project-0.2.0-blue.svg)](https://clojars.org/org.clojars.hector/pickdict)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/hectorqlucero/pickdict/actions)
 [![License](https://img.shields.io/badge/license-EPL%202.0-blue.svg)](https://www.eclipse.org/legal/epl-2.0/)
 [![Clojure](https://img.shields.io/badge/clojure-1.12+-blue.svg)](https://clojure.org/)
@@ -120,11 +120,13 @@ This approach is particularly powerful for:
 
 ```clojure
 ```clojure
+```clojure
 ;; project.clj
-[org.clojars.hector/pickdict "0.1.1"]
+[org.clojars.hector/pickdict "0.2.0"]
 
 ;; deps.edn
-{:deps {org.clojars.hector/pickdict {:mvn/version "0.1.1"}}}
+{:deps {org.clojars.hector/pickdict {:mvn/version "0.2.0"}}}
+```
 ```
 ```
 
@@ -186,34 +188,48 @@ Let's build a complete e-commerce system to demonstrate PickDict's capabilities:
 ### Define Dictionary Fields
 
 ```clojure
-;; Customer dictionary (automatically created by create-file!)
-(pick/define-dictionary-field db "CUSTOMER_DICT" "CUSTOMER_ID" "A" "0" "" "Customer ID")
-(pick/define-dictionary-field db "CUSTOMER_DICT" "FULL_NAME" "C" "" "(str FIRST_NAME \" \" LAST_NAME)" "Full Name")
-(pick/define-dictionary-field db "CUSTOMER_DICT" "EMAIL" "A" "3" "" "Email Address")
-(pick/define-dictionary-field db "CUSTOMER_DICT" "PRIMARY_PHONE" "A" "4" "" "Primary Phone")
-(pick/define-dictionary-field db "CUSTOMER_DICT" "PHONE_NUMBERS" "A" "4" "" "All Phone Numbers")
+;; Note: A-type (Attribute) fields are created automatically by create-file!
+;; The following fields are created automatically for CUSTOMER table:
+;; - FIRST_NAME (A-type, position 1)
+;; - LAST_NAME (A-type, position 2) 
+;; - EMAIL (A-type, position 3)
+;; - PHONE_NUMBERS (A-type, position 4)
+;; - ADDRESSES (A-type, position 5)
 
-;; Product dictionary (automatically created by create-file!)
-(pick/define-dictionary-field db "PRODUCT_DICT" "PRODUCT_ID" "A" "0" "" "Product ID")
-(pick/define-dictionary-field db "PRODUCT_DICT" "PRODUCT_NAME" "A" "1" "" "Product Name")
-(pick/define-dictionary-field db "PRODUCT_DICT" "PRICE" "A" "3" "" "Unit Price")
-(pick/define-dictionary-field db "PRODUCT_DICT" "CATEGORIES" "A" "4" "" "Categories")
-(pick/define-dictionary-field db "PRODUCT_DICT" "TAGS" "A" "5" "" "Tags")
+;; Add computed and translation fields on top of the automatic A-type fields
+(pick/define-dictionary-field db "CUSTOMER_DICT" "FULL_NAME" "C" "" "(str FIRST_NAME \" \" LAST_NAME)" "Full Name")
+(pick/define-dictionary-field db "CUSTOMER_DICT" "PRIMARY_PHONE" "A" "4" "" "Primary Phone")
+
+;; Note: A-type (Attribute) fields are created automatically by create-file!
+;; The following fields are created automatically for PRODUCT table:
+;; - NAME (A-type, position 1)
+;; - DESCRIPTION (A-type, position 2)
+;; - PRICE (A-type, position 3)
+;; - CATEGORIES (A-type, position 4)
+;; - TAGS (A-type, position 5)
+;; - STOCK_LEVELS (A-type, position 6)
+
+;; Add computed fields on top of the automatic A-type fields
 (pick/define-dictionary-field db "PRODUCT_DICT" "TOTAL_STOCK" "C" "" "SUM:STOCK_LEVELS" "Total Stock")
 (pick/define-dictionary-field db "PRODUCT_DICT" "INVENTORY_VALUE" "C" "" "(* PRICE TOTAL_STOCK)" "Inventory Value")
 (pick/define-dictionary-field db "PRODUCT_DICT" "IS_LOW_STOCK" "C" "" "(if (< TOTAL_STOCK 10) 1 0)" "Low Stock Flag")
 
-;; Order dictionary (automatically created by create-file!)
-(pick/define-dictionary-field db "ORDER_DICT" "ORDER_ID" "A" "0" "" "Order ID")
+;; Note: A-type (Attribute) fields are created automatically by create-file!
+;; The following fields are created automatically for ORDER table:
+;; - CUSTOMER_ID (A-type, position 1)
+;; - PRODUCT_IDS (A-type, position 2)
+;; - QUANTITIES (A-type, position 3)
+;; - UNIT_PRICES (A-type, position 4)
+;; - ORDER_DATE (A-type, position 5)
+;; - STATUS (A-type, position 6)
+
+;; Add translation and computed fields
 (pick/define-dictionary-field db "ORDER_DICT" "CUSTOMER_NAME" "T" "1" "TCUSTOMER;FULL_NAME" "Customer Name")
-(pick/define-dictionary-field db "ORDER_DICT" "PRODUCT_NAMES" "T" "2" "TPRODUCT;PRODUCT_NAME" "Product Names")
-(pick/define-dictionary-field db "ORDER_DICT" "QUANTITIES" "A" "3" "" "Quantities")
-(pick/define-dictionary-field db "ORDER_DICT" "UNIT_PRICES" "A" "4" "" "Unit Prices")
+(pick/define-dictionary-field db "ORDER_DICT" "PRODUCT_NAMES" "T" "2" "TPRODUCT;NAME" "Product Names")
 (pick/define-dictionary-field db "ORDER_DICT" "LINE_TOTALS" "C" "" "MULTIPLY:QUANTITIES,UNIT_PRICES" "Line Totals")
 (pick/define-dictionary-field db "ORDER_DICT" "SUBTOTAL" "C" "" "SUM:LINE_TOTALS" "Subtotal")
 (pick/define-dictionary-field db "ORDER_DICT" "TAX" "C" "" "(* SUBTOTAL 0.08)" "Tax (8%)")
 (pick/define-dictionary-field db "ORDER_DICT" "TOTAL" "C" "" "(+ SUBTOTAL TAX)" "Order Total")
-(pick/define-dictionary-field db "ORDER_DICT" "STATUS" "A" "6" "" "Order Status")
 ```
 
 ### Create Sample Data
@@ -595,11 +611,15 @@ Get started with PickDict in minutes:
                     :categories "TEXT"      ;; Multivalue: "electronics]popular]new"
                     :stock_levels "TEXT"})  ;; Multivalue: "10]5]20"
 
-;; Dictionary fields are created automatically (Pick/D3 style):
-;; - NAME (maps to name column)
-;; - PRICE (maps to price column)  
-;; - CATEGORIES (maps to categories column)
-;; - STOCK_LEVELS (maps to stock_levels column)
+;; 🎉 IMPORTANT: A-type (Attribute) dictionary fields are created AUTOMATICALLY!
+;; The following A-type fields are created automatically by create-file!:
+;; - NAME (A-type, position 1) → maps to 'name' column
+;; - PRICE (A-type, position 2) → maps to 'price' column  
+;; - CATEGORIES (A-type, position 3) → maps to 'categories' column
+;; - STOCK_LEVELS (A-type, position 4) → maps to 'stock_levels' column
+;;
+;; You can add computed/translation fields on top of these automatic fields:
+;; (pick/define-dictionary-field db "PRODUCT_DICT" "TOTAL_STOCK" "C" "" "SUM:STOCK_LEVELS" "Total Stock")
 
 ;; 4. Create and query data
 (pick/create-record! db "PRODUCT"
@@ -610,10 +630,10 @@ Get started with PickDict in minutes:
 
 ;; 5. Query with automatic interpretation
 (pick/find-all db "PRODUCT")
-;; Returns: {:PRODUCT_NAME "Wireless Headphones"
+;; Returns: {:NAME "Wireless Headphones"
 ;;           :PRICE 99.99
-;;           :CATEGORIES ["electronics" "audio" "wireless"]
-;;           :STOCK_LEVELS ["50" "30" "20"]}
+;;           :CATEGORIES ["electronics" "audio" "wireless"]  ;; ← Automatically parsed!
+;;           :STOCK_LEVELS ["50" "30" "20"]}                 ;; ← Automatically parsed!
 ```
 
 ## Core Concepts
@@ -683,7 +703,7 @@ Drops a table and its associated dictionary.
 
 ### Dictionary Operations
 
-**Note:** Dictionaries are created automatically when you call `create-file!`. You only need to define dictionary fields.
+**Note:** Dictionaries are created automatically when you call `create-file!`. A-type (Attribute) fields are created automatically for each column. You only need to define additional T-type (Translation) and C-type (Computed) fields.
 
 #### `(define-dictionary-field db dict-name field-name field-type position expression description)`
 Defines a new field in a dictionary.
@@ -699,14 +719,14 @@ Defines a new field in a dictionary.
 
 **Examples:**
 ```clojure
-;; Attribute field
-(pick/define-dictionary-field db "PRODUCT_DICT" "NAME" "A" "1" "" "Product Name")
+;; Attribute field (usually created automatically by create-file!)
+(define-dictionary-field db "PRODUCT_DICT" "NAME" "A" "1" "" "Product Name")
 
 ;; Translate field
-(pick/define-dictionary-field db "PRODUCT_DICT" "SUPPLIER_NAME" "T" "1" "TSUPPLIER;name" "Supplier Name")
+(define-dictionary-field db "PRODUCT_DICT" "SUPPLIER_NAME" "T" "1" "TSUPPLIER;name" "Supplier Name")
 
 ;; Computed field
-(pick/define-dictionary-field db "PRODUCT_DICT" "TOTAL_VALUE" "C" "" "(* PRICE QUANTITY)" "Total Value")
+(define-dictionary-field db "PRODUCT_DICT" "TOTAL_VALUE" "C" "" "(* PRICE QUANTITY)" "Total Value")
 ```
 
 ### CRUD Operations
@@ -806,17 +826,13 @@ Retrieves all records without dictionary interpretation (raw data).
 
 ### Attribute Fields (`A`)
 
-Direct mapping to table columns by position. Use for simple field access:
+Direct mapping to table columns by position. **Note:** These are usually created automatically by `create-file!`. Use for simple field access or when you need custom positioning:
 
 ```clojure
-;; Map to first column (name)
+;; Usually created automatically by create-file!
+;; Only define manually if you need custom positioning or names
 (define-dictionary-field db "CUSTOMER_DICT" "CUSTOMER_NAME" "A" "1" "" "Customer Name")
-
-;; Map to second column (email)
 (define-dictionary-field db "CUSTOMER_DICT" "EMAIL" "A" "2" "" "Email Address")
-
-;; Map to third column (phone)
-(define-dictionary-field db "CUSTOMER_DICT" "PHONE" "A" "3" "" "Phone Number")
 ```
 
 ### Translate Fields (`T`)
@@ -1043,9 +1059,7 @@ Run the complete example:
                     :images "TEXT"})
 
 ;; Dictionary with business logic (automatically created by create-file!)
-(pick/define-dictionary-field db "PRODUCT_DICT" "PRODUCT_NAME" "A" "1" "" "Product Name")
-(pick/define-dictionary-field db "PRODUCT_DICT" "CATEGORIES" "A" "2" "" "Categories")
-(pick/define-dictionary-field db "PRODUCT_DICT" "TAGS" "A" "3" "" "Tags")
+;; A-type fields created automatically: NAME, PRICE, CATEGORIES, TAGS, SPECIFICATIONS, IMAGES
 (pick/define-dictionary-field db "PRODUCT_DICT" "IS_FEATURED" "C" "" "(some #(= % \"featured\") TAGS)" "Is Featured")
 (pick/define-dictionary-field db "PRODUCT_DICT" "CATEGORY_COUNT" "C" "" "(count CATEGORIES)" "Category Count")
 ```
@@ -1062,6 +1076,7 @@ Run the complete example:
                     :discount_percent "REAL"})
 
 ;; Advanced financial calculations (automatically created by create-file!)
+;; A-type fields created automatically: CUSTOMER_ID, LINE_ITEMS, TAX_RATE, DISCOUNT_PERCENT
 (pick/define-dictionary-field db "INVOICE_DICT" "CUSTOMER_NAME" "T" "1" "TCUSTOMER;name" "Customer Name")
 (pick/define-dictionary-field db "INVOICE_DICT" "SUBTOTAL" "C" "" "(reduce + LINE_ITEM_TOTALS)" "Subtotal")
 (pick/define-dictionary-field db "INVOICE_DICT" "TAX_AMOUNT" "C" "" "(* SUBTOTAL (/ TAX_RATE 100))" "Tax Amount")
