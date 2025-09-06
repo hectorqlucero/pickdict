@@ -1,9 +1,9 @@
 
 (ns pickdict.core
   (:require [pickdict.database :as db]
-            [pickdict.multivalue :as mv]
             [pickdict.dictionary :as dict]
-            [pickdict.crud :as crud]))
+            [pickdict.crud :as crud]
+            [clojure.string :as str]))
 
 ;; Re-export database functions
 (def execute-query db/execute-query)
@@ -11,11 +11,6 @@
 (def table-exists? db/table-exists?)
 (def create-table db/create-table)
 (def drop-table db/drop-table)
-
-;; Re-export multivalue functions
-(def parse-multivalue mv/parse-multivalue)
-(def format-multivalue mv/format-multivalue)
-(def extract-multivalue-numbers mv/extract-multivalue-numbers)
 
 ;; Re-export dictionary functions
 (def create-dictionary-table dict/create-dictionary-table)
@@ -33,14 +28,6 @@
 
 
 ;; Utility functions
-(defn query-with-dictionary-fields
-  "Query records using a Pick-style dictionary to define field mappings and translations"
-  ([table-name dict-name] (query-with-dictionary-fields db/default-db table-name dict-name))
-  ([db table-name dict-name]
-   ;; This is a placeholder - the actual implementation would be complex
-   ;; For now, just return the raw records
-   (crud/read-all-records db table-name)))
-
 (defn create-file!
   "Create a table and its associated dictionary table (Pick/D3 style)"
   ([table-name schema] (create-file! db/default-db table-name schema))
@@ -49,5 +36,16 @@
    (create-table db table-name schema)
    ;; Create the dictionary table
    (let [dict-name (str table-name "_DICT")]
-     (create-dictionary-table db dict-name))
+     (create-dictionary-table db dict-name)
+     ;; Automatically create Attribute fields for each column (Pick/D3 style)
+     (let [columns (keys schema)
+           ;; Skip 'id' column as it's typically the primary key
+           data-columns (remove #(= % :id) columns)]
+       (doseq [[index column] (map-indexed vector data-columns)]
+         (let [field-name (str/upper-case (name column))
+               position (str (inc index))  ;; 1-based position
+               description (str/replace
+                            (str/capitalize (name column))
+                            #"_" " ")]
+           (define-dictionary-field db dict-name field-name "A" position "" description)))))
    true))

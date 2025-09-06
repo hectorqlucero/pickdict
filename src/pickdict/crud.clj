@@ -1,7 +1,6 @@
 (ns pickdict.crud
   (:require [pickdict.database :as db]
             [pickdict.dictionary :as dict]
-            [pickdict.multivalue :as mv]
             [clojure.string :as str]))
 
 ;; --- Dictionary Transformation Helpers ---
@@ -23,7 +22,7 @@
 
 
 (defn dict-field->source-key [field-name]
-  (-> field-name name clojure.string/lower-case (clojure.string/replace "_" "-") keyword))
+  (-> field-name name clojure.string/lower-case keyword))
 
 
 (defn apply-direct-field-mapping [_db _table-name record {:keys [field-name]}]
@@ -63,15 +62,30 @@
 
 ;; --- Utility Functions for Computed Fields ---
 (defn sum-multivalue-field [record field-key]
-  (let [values (mv/extract-multivalue-numbers (get record field-key))]
-    (if (seq values) (reduce + values) 0.0)))
+  (let [field-value (get record field-key)]
+    (cond
+      (vector? field-value)
+      (try (reduce + field-value) (catch Exception _ 0.0))
+
+      (and (string? field-value) (str/includes? field-value "]"))
+      (let [values (map #(try (Double/parseDouble (str/trim %)) (catch Exception _ 0.0))
+                        (str/split field-value #"\]"))]
+        (try (reduce + values) (catch Exception _ 0.0)))
+
+      field-value
+      (try (Double/parseDouble (str field-value)) (catch Exception _ 0.0))
+
+      :else
+      0.0)))
 
 (defn multiply-fields [record qty-key price-key]
-  (let [qtys (mv/extract-multivalue-numbers (get record qty-key))
-        prices (mv/extract-multivalue-numbers (get record price-key))]
-    (if (and (seq qtys) (seq prices) (= (count qtys) (count prices)))
-      (vec (map * qtys prices))
-      [])))
+  (let [qty-val (get record qty-key)
+        price-val (get record price-key)]
+    (try
+      (let [qty-num (Double/parseDouble (str qty-val))
+            price-num (Double/parseDouble (str price-val))]
+        (* qty-num price-num))
+      (catch Exception _ 0.0))))
 
 ;; --- Computed Fields Registry (Generic) ---
 (def computed-fields-registry (atom {}))
@@ -151,70 +165,42 @@
 
 ;; --- CRUD Operations (with generic translation and validation) ---
 (defn create-record
-  "Create a new record in a table. Formats record for storage. Returns the generated ID."
+  "Create a new record in a table. Returns the generated ID."
   [db table-name record]
-  (let [validated-record (validate-record table-name record)
-        formatted-record (mv/format-record-for-storage validated-record)]
-    (db/insert-record db table-name formatted-record)))
-
-
-
+  (let [validated-record (validate-record table-name record)]
+    (db/insert-record db table-name validated-record)))
 
 (defn find-by-id
-  "Find a record by ID. Parses multivalue fields and applies dictionary, translation, and computed fields."
+  "Find a record by ID and apply dictionary mappings."
   [db table-name id]
   (when id
     (let [raw-record (db/find-by-id db table-name id)]
       (when raw-record
-        (let [parsed-record (mv/parse-record-from-storage raw-record)
-              dict-mapped (apply-dictionary-mappings db table-name parsed-record)
+        (let [dict-mapped (apply-dictionary-mappings db table-name raw-record)
               translated (apply-translations db table-name dict-mapped)
               computed (apply-computed-fields table-name translated)]
           computed)))))
 
-
-;(defn read-all-records ...)
-
-
 (defn read-all-records
-  "Read all records from a table. Parses multivalue fields and applies dictionary, translation, and computed fields."
+  "Read all records from a table and apply dictionary mappings."
   [db table-name]
   (let [raw-records (db/find-all db table-name)]
-    (->> (filter map? raw-records)
-         (keep (fn [raw-record]
-                 (let [parsed-record (mv/parse-record-from-storage raw-record)
-                       dict-mapped (apply-dictionary-mappings db table-name parsed-record)
-                       translated (apply-translations db table-name dict-mapped)
-                       computed (apply-computed-fields table-name translated)]
-                   (when (map? computed) computed))))
+    (->> raw-records
+         (map (fn [raw-record]
+                (let [dict-mapped (apply-dictionary-mappings db table-name raw-record)
+                      translated (apply-translations db table-name dict-mapped)
+                      computed (apply-computed-fields table-name translated)]
+                  computed)))
          (filter map?)
          vec)))
 
 (defn update-record
-  "Update a record by ID. Formats record for storage. Returns true if successful."
+  "Update a record by ID. Returns true if successful."
   [db table-name id updates]
-  (let [validated-updates (validate-record table-name updates)
-        formatted-updates (mv/format-record-for-storage validated-updates)]
-    (db/update-record db table-name id formatted-updates)))
+  (let [validated-updates (validate-record table-name updates)]
+    (db/update-record db table-name id validated-updates)))
 
 (defn delete-record
   "Delete a record by ID. Returns true if successful."
   [db table-name id]
   (db/delete-record db table-name id))
-
-(defn find-by-criteria
-  "Find records by criteria (map of field to value). Parses multivalue fields and applies dictionary, translation, and computed fields."
-  [db table-name criteria]
-  (let [raw-records (db/find-by-criteria db table-name criteria)]
-    (map (fn [raw-record]
-           (let [parsed-record (mv/parse-record-from-storage raw-record)
-                 dict-mapped (apply-dictionary-mappings db table-name parsed-record)]
-             (-> dict-mapped
-                 (apply-translations db table-name)
-                 (apply-computed-fields table-name))))
-         raw-records)))
-
-(defn count-records
-  "Count records in a table."
-  [db table-name]
-  (db/count-records db table-name))

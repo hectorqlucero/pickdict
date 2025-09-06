@@ -1,7 +1,6 @@
 (ns pickdict.dictionary
   "Dictionary operations for PickDict"
   (:require [pickdict.database :as db]
-            [pickdict.multivalue :as mv]
             [clojure.string :as str]))
 
 (defn create-dictionary-table
