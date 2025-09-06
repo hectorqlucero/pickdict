@@ -1,8 +1,7 @@
 # PickDict
 
 [![Clojars Project](https://img.shields.io/badge/Clojars%20Project-0.3.0-blue.svg)](https://clojars.org/org.clojars.hector/pickdict)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](htt  (pick/define-dictionary-field db "ORDERS_DICT" "CUSTOMER_NAME" "T" "2" "TCUSTOMER;FULL_NAME" "Customer Name")
-  (pick/define-dictionary-field db "ORDERS_DICT" "PRODUCT_NAMES" "T" "3" "TPRODUCT;NAME" "Product Names")://github.com/hectorqlucero/pickdict/actions)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/hectorqlucero/pickdict/actions)
 [![License](https://img.shields.io/badge/license-EPL%202.0-blue.svg)](https://www.eclipse.org/legal/epl-2.0/)
 [![Clojure](https://img.shields.io/badge/clojure-1.12+-blue.svg)](https://clojure.org/)
 
